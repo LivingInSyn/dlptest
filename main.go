@@ -103,7 +103,9 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	// check the hash
 	hashval, err := hashFile(uploadPath)
 	if hashval != DLFiles[uploadFile.Name()].Hash {
-		log.Printf("Hash for %s doesn't match. Got %s, expected %s", uploadFile.Name(), hashval, DLFiles[uploadFile.Name()].Hash)
+		log.Printf("Hash for %s doesn't match. Got %s, expected %s\n", uploadFile.Name(), hashval, DLFiles[uploadFile.Name()].Hash)
+	} else {
+		log.Printf("Hash for %s matches!\n", uploadFile.Name())
 	}
 
 	fmt.Fprintf(w, "File uploaded successfully: %s\n", handler.Filename)

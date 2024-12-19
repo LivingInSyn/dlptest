@@ -7,5 +7,82 @@
 </head>
 <body>
 	<h1>Hello from a static page</h1>
+    <input id="sample-data-csv" data-filename="sample-data.csv" type="button" value="Sample Data CSV" onclick="fileClick(this.dataset.filename);" />
 </body>
+
+<script>
+    async function fileClick(filename) {
+        let dlurl = "http://localhost:8080/downloads/"+filename;
+        let posturl = "http://localhost:8080/upload";
+        let result = await downloadAndPostFile(dlurl, posturl);
+        console.log("Result from server:", result)
+
+    }
+    async function downloadAndPostFile(fileUrl, postUrl) {
+        try {
+            // 1. Download the file
+            const response = await fetch(fileUrl);
+
+            if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Get the blob of the file
+            const blob = await response.blob();
+
+            // 2. Create a FormData object for the POST request
+            const formData = new FormData();
+
+            // Extract filename from URL (handle various URL formats)
+            let filename = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+            if (!filename) { // If no filename found in URL, generate a generic one
+                filename = "downloaded_file";
+            }
+
+            // Append the blob to the FormData. You can specify a custom filename.
+            formData.append('file', blob, filename); // 'file' is the field name expected by the server
+
+            // 3. POST the file
+            const postResponse = await fetch(postUrl, {
+            method: 'POST',
+            body: formData,
+            });
+
+            if (!postResponse.ok) {
+                const errorText = await postResponse.text(); // Try to get error message from server
+                throw new Error(`POST error! status: ${postResponse.status}, message: ${errorText}`);
+            }
+
+            console.log('File posted successfully:');
+            return 0; // Return the server's response
+        } catch (error) {
+            console.error('Error downloading or posting file:', error);
+            throw error; // Re-throw the error to be handled by the caller if needed
+        }
+    }
+
+
+
+    // Example usage:
+    function testDownloadAndPost() {
+        const fileURL = 'https://www.w3.org/TR/PNG/iso_8859-1.txt'; // Example text file
+        const postURL = 'https://httpbin.org/post'; // Example testing URL (returns the posted data)
+
+        try {
+        const result = downloadAndPostFile(fileURL, postURL);
+        console.log("Result from server:", result);
+        } catch (error) {
+        console.error("Test failed:", error);
+        }
+
+        const imageURL = 'https://www.easygifanimator.net/images/samples/video-to-gif-sample.gif';
+        try {
+            const result = downloadAndPostFile(imageURL, postURL);
+            console.log("Result from server:", result);
+        } catch (error) {
+            console.error("Test failed:", error);
+        }
+    }
+</script>
+
 </html>
