@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"text/template"
 )
 
 const (
@@ -20,6 +21,9 @@ type DLFile struct {
 	Name string
 	Hash string
 }
+type DownloadTemplate struct {
+	Dlfs []DLFile
+}
 
 var DLFiles map[string]DLFile
 
@@ -31,7 +35,9 @@ func main() {
 	}
 
 	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.HandleFunc("/", serveTemplate)
 
 	http.HandleFunc("/upload", uploadFile)
 	http.Handle("/download/", http.StripPrefix("/download/", http.FileServer(http.Dir(downloadPath))))
@@ -48,6 +54,24 @@ func populateDLFiles() {
 		log.Panic("couldn't hash the dir", err)
 	}
 	DLFiles = dirfiles
+}
+
+func serveTemplate(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("./templates/layout.html"))
+	// create the data for the page
+	dlfs := make([]DLFile, 0, len(DLFiles))
+	for _, v := range DLFiles {
+		dlfs = append(dlfs, v)
+	}
+	dt := DownloadTemplate{
+		Dlfs: dlfs,
+	}
+	// execute the template
+	err := tmpl.Execute(w, dt)
+	if err != nil {
+		log.Print(err.Error())
+		http.Error(w, http.StatusText(500), 500)
+	}
 }
 
 func getAvailableFiles(w http.ResponseWriter, _ *http.Request) {
@@ -90,7 +114,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer uploadFile.Close()
-	defer os.Remove(uploadPath)
+	defer os.Remove(filepath.Join(uploadPath, filename))
 
 	// Copy the uploaded file to the server's filesystem
 	_, err = io.Copy(uploadFile, file)
