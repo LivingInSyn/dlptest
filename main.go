@@ -57,33 +57,8 @@ func populateDLFiles() {
 }
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
-	lp := filepath.Join("templates", "layout.html")
-	fp := filepath.Join("templates", filepath.Clean(r.URL.Path))
-
-	// Return a 404 if the template doesn't exist
-	info, err := os.Stat(fp)
-	if err != nil {
-		if os.IsNotExist(err) {
-			http.NotFound(w, r)
-			return
-		}
-	}
-
-	// Return a 404 if the request is for a directory
-	if info.IsDir() {
-		http.NotFound(w, r)
-		return
-	}
-
-	tmpl, err := template.ParseFiles(lp, fp)
-	if err != nil {
-		// Log the detailed error
-		log.Print(err.Error())
-		// Return a generic "Internal Server Error" message
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-
+	tmpl := template.Must(template.ParseFiles("./templates/layout.html"))
+	// create the data for the page
 	dlfs := make([]DLFile, 0, len(DLFiles))
 	for _, v := range DLFiles {
 		dlfs = append(dlfs, v)
@@ -91,7 +66,8 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	dt := DownloadTemplate{
 		Dlfs: dlfs,
 	}
-	err = tmpl.ExecuteTemplate(w, "layout", dt)
+	// execute the template
+	err := tmpl.Execute(w, dt)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, http.StatusText(500), 500)
@@ -138,7 +114,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer uploadFile.Close()
-	defer os.Remove(uploadPath)
+	defer os.Remove(filepath.Join(uploadPath, filename))
 
 	// Copy the uploaded file to the server's filesystem
 	_, err = io.Copy(uploadFile, file)
