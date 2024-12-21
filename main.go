@@ -21,6 +21,9 @@ type DLFile struct {
 	Name string
 	Hash string
 }
+type DownloadTemplate struct {
+	Dlfs []DLFile
+}
 
 var DLFiles map[string]DLFile
 
@@ -81,7 +84,14 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = tmpl.ExecuteTemplate(w, "layout", nil)
+	dlfs := make([]DLFile, 0, len(DLFiles))
+	for _, v := range DLFiles {
+		dlfs = append(dlfs, v)
+	}
+	dt := DownloadTemplate{
+		Dlfs: dlfs,
+	}
+	err = tmpl.ExecuteTemplate(w, "layout", dt)
 	if err != nil {
 		log.Print(err.Error())
 		http.Error(w, http.StatusText(500), 500)
