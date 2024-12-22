@@ -9,8 +9,9 @@
 	<link rel="stylesheet" href="/static/stylesheets/main.css">
 </head>
 <body>
+	<div class="container text-center"></div>
 	<h1>HTTP POST files</h1>
-	<div class="container text-center">
+	
 
 	{{range .Dlfs}}
 		<div class="row justify-content-start">
@@ -22,7 +23,21 @@
 			</span>
 		</div>
 	{{end}}
+	
+
+	<h1>Downloads</h1>
+	{{range .Dlfs}}
+	<div class="row justify-content-start">
+		<div class="col-2">
+			<form method="get" action="/static/downloads/{{.Name}}">
+				<button type="button btn-primary" style="width: 100%;">{{.Name}}</button>
+			</form>
+		</div>
 	</div>
+	{{end}}
+
+	</div>
+
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 	<script src ="/static/scripts/http_test.js"></script>

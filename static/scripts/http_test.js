@@ -1,11 +1,17 @@
 async function fileClick(filename) {
-    let dlurl = "http://localhost:8080/downloads/"+filename;
+    let dlurl = "http://localhost:8080/static/downloads/"+filename;
     let posturl = "http://localhost:8080/upload";
     let result = await downloadAndPostFile(dlurl, posturl);
     console.log("Result from server:", result)
 
 }
 async function downloadAndPostFile(fileUrl, postUrl) {
+    let filename = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+    if (!filename) { // If no filename found in URL, generate a generic one
+        filename = "downloaded_file";
+    }
+    id_to_update = filename + "-status"
+    status_span = document.getElementById(id_to_update);
     try {
         // 1. Download the file
         const response = await fetch(fileUrl);
@@ -19,13 +25,7 @@ async function downloadAndPostFile(fileUrl, postUrl) {
 
         // 2. Create a FormData object for the POST request
         const formData = new FormData();
-
-        // Extract filename from URL (handle various URL formats)
-        let filename = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
-        if (!filename) { // If no filename found in URL, generate a generic one
-            filename = "downloaded_file";
-        }
-
+        
         // Append the blob to the FormData. You can specify a custom filename.
         formData.append('file', blob, filename); // 'file' is the field name expected by the server
 
@@ -35,8 +35,6 @@ async function downloadAndPostFile(fileUrl, postUrl) {
         body: formData,
         });
 
-        id_to_update = filename + "-status"
-        status_span = document.getElementById(id_to_update);
         if (!postResponse.ok) {
             const errorText = await postResponse.text(); // Try to get error message from server
             //throw new Error(`POST error! status: ${postResponse.status}, message: ${errorText}`);
@@ -48,6 +46,7 @@ async function downloadAndPostFile(fileUrl, postUrl) {
 
         return 0; // Return the server's response
     } catch (error) {
+        status_span.textContent = "POST not successful" + error;
         console.error('Error downloading or posting file:', error);
         throw error; // Re-throw the error to be handled by the caller if needed
     }
