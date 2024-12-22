@@ -84,6 +84,8 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	// http.Error(w, "File too large", http.StatusBadRequest)
+	// return
 
 	// Parse multipart form, setting max memory for file uploads
 	r.ParseMultipartForm(maxUploadSize)

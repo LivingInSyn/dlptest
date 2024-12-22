@@ -39,6 +39,7 @@ async function downloadAndPostFile(fileUrl, postUrl) {
             const errorText = await postResponse.text(); // Try to get error message from server
             //throw new Error(`POST error! status: ${postResponse.status}, message: ${errorText}`);
             status_span.textContent = "POST failed - status: " + postResponse.status;
+            return
         }
 
         console.log('File posted successfully:');
