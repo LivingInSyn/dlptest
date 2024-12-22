@@ -125,9 +125,17 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check the hash
-	hashval, err := hashFile(uploadPath)
-	if hashval != DLFiles[uploadFile.Name()].Hash {
-		log.Printf("Hash for %s doesn't match. Got %s, expected %s\n", uploadFile.Name(), hashval, DLFiles[uploadFile.Name()].Hash)
+	hashval, err := hashFile(filepath.Join(uploadPath, filename))
+	if err != nil {
+		log.Printf("Error hashing uploaded file: %s", err)
+		http.Error(w, "Error retrieving the file", http.StatusInternalServerError)
+		return
+	}
+	dlfilekey := handler.Filename
+	if hashval != DLFiles[dlfilekey].Hash {
+		log.Printf("Hash for %s doesn't match. Got %s, expected %s\n", uploadFile.Name(), hashval, DLFiles[dlfilekey].Hash)
+		http.Error(w, "Hash for file received by server doesn't match sample.", http.StatusUnauthorized)
+		return
 	} else {
 		log.Printf("Hash for %s matches!\n", uploadFile.Name())
 	}

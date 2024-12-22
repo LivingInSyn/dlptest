@@ -9,26 +9,28 @@
 	<link rel="stylesheet" href="/static/stylesheets/main.css">
 </head>
 <body>
-	<div class="container text-center"></div>
-	<h1>HTTP POST files</h1>
-	
-
+	<div class="container-fluid"></div>
+	<div class="row">
+		<h3>HTTP POST files</h3>
+	</div>
 	{{range .Dlfs}}
 		<div class="row justify-content-start">
-			<div class="col-2">
+			<div class="col-md-2">
 				<button type="button btn-primary" id="{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="fileClick(this.dataset.filename);" style="width: 100%;">{{.Name}}</button>
 			</div>
-			<span class="col-2" id="{{printf "%s-status" .Name}}">
+			<span class="col-md-2" id="{{printf "%s-status" .Name}}">
 				Not Run
 			</span>
 		</div>
 	{{end}}
 	
 
-	<h1>Downloads</h1>
+	<div class="row">
+		<h3>Downloads</h3>
+	</div>
 	{{range .Dlfs}}
 	<div class="row justify-content-start">
-		<div class="col-2">
+		<div class="col-md-2">
 			<form method="get" action="/static/downloads/{{.Name}}">
 				<button type="button btn-primary" style="width: 100%;">{{.Name}}</button>
 			</form>
@@ -36,12 +38,22 @@
 	</div>
 	{{end}}
 
-	<h1>Custom Upload</h1>
-	<form method="post" action="/upload" enctype="multipart/form-data">
-		<label for="file">File</label>
-		<input id="file" name="file" type="file" />
-		<button>Upload</button>
-	</form>
+	<div class="row">
+		<h3>Custom Upload</h3>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<form method="post" action="/upload" enctype="multipart/form-data">
+				<div class="form-group">
+					<label for="formFile" class="form-label">Upload a custom file</label>
+  					<input class="form-control" type="file" id="formFile" name="file">
+				</div>
+				<button type="submit" class="btn btn-primary submitbutton">
+					Submit
+				</button>
+			</form>
+		</div>
+	</div>
 	  
 
 	</div>
