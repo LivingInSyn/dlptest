@@ -21,7 +21,8 @@ async function downloadAndPostFile(fileUrl, postUrl) {
         }
 
         // Get the blob of the file
-        const blob = await response.blob();
+        const blob = await downloadFileToBlob(fileUrl)
+        //const blob = await response.blob();
 
         // 2. Create a FormData object for the POST request
         const formData = new FormData();

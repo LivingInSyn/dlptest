@@ -1,3 +1,10 @@
+async function slackFileClick(filename, webhook) {
+    let dlurl = "http://localhost:8080/static/downloads/"+filename;
+    let posturl = "http://localhost:8080/upload";
+    const blob = downloadFileToBlob(dlurl)
+    postFileToSlackWebhook(blob, filename, webhook, "DLP Test")
+}
+
 async function postFileToSlackWebhook(file, filename, webhookUrl, initialComment = "") {
     try {
       if (!file || !(file instanceof Blob) ) {

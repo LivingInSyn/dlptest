@@ -54,12 +54,30 @@
 			</form>
 		</div>
 	</div>
+	{{ if .UseSlack}}
+	<div class="row">
+		<h3>Slack Upload</h3>
+	</div>
+	{{range .Dlfs}}
+		<div class="row justify-content-start">
+			<div class="col-md-2">
+				<button type="button btn-primary" id="slack-{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="slackFileClick(this.dataset.filename, "{{$.SlackWebhook}}");" style="width: 100%;">{{.Name}}</button>
+			</div>
+			<span class="col-md-2" id="{{printf "%s-status" .Name}}">
+				Not Run
+			</span>
+		</div>
+	{{end}}
+	</div>
+
+	{{ end }}
 	  
 
 	</div>
 
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+	<script src ="/static/scripts/common.js"></script>
 	<script src ="/static/scripts/http_test.js"></script>
 	<script src ="/static/scripts/slack_test.js"></script>
 <footer>

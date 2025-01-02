@@ -22,12 +22,21 @@ type DLFile struct {
 	Hash string
 }
 type DownloadTemplate struct {
-	Dlfs []DLFile
+	Dlfs         []DLFile
+	UseSlack     bool
+	SlackWebhook string
 }
 
 var DLFiles map[string]DLFile
+var SlackWebhook string
 
 func main() {
+	value, exists := os.LookupEnv("DLPTEST_SLACK_HOOK")
+	if exists {
+		SlackWebhook = value
+	} else {
+		SlackWebhook = ""
+	}
 	populateDLFiles()
 	// Create upload directory if it doesn't exist
 	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
@@ -64,7 +73,9 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		dlfs = append(dlfs, v)
 	}
 	dt := DownloadTemplate{
-		Dlfs: dlfs,
+		Dlfs:         dlfs,
+		SlackWebhook: SlackWebhook,
+		UseSlack:     SlackWebhook != "",
 	}
 	// execute the template
 	err := tmpl.Execute(w, dt)
