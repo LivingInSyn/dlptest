@@ -1,12 +1,52 @@
-.row {
-    /* padding-top:1em; */
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
 }
-h3 {
-    padding-top:1em;
+
+/* Card Styling */
+.card {
+    border-radius: 12px;
+    border: none;
+    max-width: 500px;
+    margin: auto;
 }
-.submitbutton {
-    margin-top:1em;
+
+    .card h1 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+/* Button Enhancements */
+.btn {
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
 }
-button {
-    margin-top:2px;
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+
+/* Upload Status Message */
+#message {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #555;
+}
+
+/* Input Field */
+input[type="file"] {
+    cursor: pointer;
+}
+
+/* Add hover effects */
+.btn:hover {
+    opacity: 0.9;
 }
