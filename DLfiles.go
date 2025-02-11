@@ -8,6 +8,12 @@ import (
 	"path/filepath"
 )
 
+// DLFile represents a file with a name and SHA1 hash.
+type DLFile struct {
+	Name string
+	Hash string
+}
+
 // hashFile calculates the SHA1 hash of a single file.
 func hashFile(filePath string) (string, error) {
 	f, err := os.Open(filePath)
@@ -24,24 +30,24 @@ func hashFile(filePath string) (string, error) {
 	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
-// hashDirectory calculates and prints the SHA1 hash of every file in a directory.
+// hashDirectory calculates and returns the SHA1 hash of every file in a directory.
 func hashDirectory(dirPath string) (map[string]DLFile, error) {
-	var dlfiles = make(map[string]DLFile)
+	dlfiles := make(map[string]DLFile)
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Printf("Error accessing %s: %v\n", path, err)
-			return nil // Continue walking even if there's an error with one file/directory
+			return fmt.Errorf("accessing %s: %w", path, err)
 		}
 
+		// Skip directories and other non-regular files
 		if !info.Mode().IsRegular() {
-			return nil // Skip directories and other non-regular files
+			return nil
 		}
 
 		hash, err := hashFile(path)
 		if err != nil {
-			fmt.Printf("Error hashing %s: %v\n", path, err)
-			return nil // Continue walking even if there's an error hashing one file
+			return fmt.Errorf("hashing %s: %w", path, err)
 		}
+
 		dlfile := DLFile{
 			Name: info.Name(),
 			Hash: hash,
@@ -52,5 +58,23 @@ func hashDirectory(dirPath string) (map[string]DLFile, error) {
 		return nil
 	})
 
-	return dlfiles, err
+	if err != nil {
+		return nil, fmt.Errorf("walking the directory: %w", err)
+	}
+
+	return dlfiles, nil
+}
+
+func main() {
+	dirPath := "path/to/your/directory"
+	dlfiles, err := hashDirectory(dirPath)
+	if err != nil {
+		fmt.Printf("Error hashing directory: %v\n", err)
+		return
+	}
+
+	// Output the result
+	for name, dlfile := range dlfiles {
+		fmt.Printf("File: %s, Hash: %s\n", name, dlfile.Hash)
+	}
 }
