@@ -12,7 +12,9 @@
                 "program": "${workspaceFolder}/main.go",
                 "env": {
                     "DLPTEST_SLACK_HOOK": "foo"
-                }
+                },
+                "args": [],
+                "showLog": true
             }
         ]
     }
