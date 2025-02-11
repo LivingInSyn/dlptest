@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -21,24 +22,44 @@ type PageData struct {
 	SlackWebhook string
 }
 
-// Serve the template
+// Ensure the uploads directory exists
+func ensureUploadsDir() {
+	err := os.MkdirAll("uploads", os.ModePerm)
+	if err != nil {
+		log.Fatal("Failed to create uploads directory: ", err)
+	}
+}
+
+// Serve the template with dynamic file listing
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
-	// Sample list of downloadable files
-	files := []File{
-		{Name: "file1.txt"},
-		{Name: "file2.txt"},
-		{Name: "file3.txt"},
+	// Ensure uploads directory exists
+	ensureUploadsDir()
+
+	// Dynamically list files in the "uploads" directory
+	var files []File
+	err := filepath.Walk("uploads", func(path string, info os.FileInfo, err error) error {
+		if err != nil || !info.Mode().IsRegular() {
+			return err
+		}
+		files = append(files, File{Name: info.Name()})
+		return nil
+	})
+	if err != nil {
+		http.Error(w, "Error reading uploaded files", http.StatusInternalServerError)
+		return
 	}
 
+	// Prepare data to pass to the template
 	data := PageData{
 		Dlfs:         files,
-		UseSlack:     true,  // Set this based on your application logic
-		SlackWebhook: "your-slack-webhook-url",  // Replace with actual webhook URL
+		UseSlack:     true,  
+		SlackWebhook: "your-slack-webhook-url", 
 	}
 
+	// Parse and execute the template
 	tmpl, err := template.ParseFiles("layout.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error parsing template: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	tmpl.Execute(w, data)
@@ -55,15 +76,18 @@ func handleFileUpload(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Retrieve the file from the form
-		file, _, err := r.FormFile("file")
+		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
 			http.Error(w, "Error retrieving the file", http.StatusBadRequest)
 			return
 		}
 		defer file.Close()
 
-		// Save the uploaded file
-		dst, err := os.Create(filepath.Join("uploads", "uploaded-file.txt"))
+		// Ensure uploads directory exists
+		ensureUploadsDir()
+
+		// Create a destination file
+		dst, err := os.Create(filepath.Join("uploads", fileHeader.Filename))
 		if err != nil {
 			http.Error(w, "Error saving the file", http.StatusInternalServerError)
 			return
@@ -94,13 +118,21 @@ func handleFileDownload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Set the appropriate content type and trigger the file download
+	// Set the appropriate content type
+	mimeType := mime.TypeByExtension(filepath.Ext(fileName))
+	if mimeType != "" {
+		w.Header().Set("Content-Type", mimeType)
+	} else {
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
+
+	// Set the Content-Disposition header to trigger the file download
 	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
-	w.Header().Set("Content-Type", "application/octet-stream")
 	http.ServeFile(w, r, filepath.Join("uploads", fileName))
 }
 
 func main() {
+	// Serve the template, handle uploads and downloads
 	http.HandleFunc("/", serveTemplate)
 	http.HandleFunc("/upload", handleFileUpload)
 	http.HandleFunc("/download/", handleFileDownload)
