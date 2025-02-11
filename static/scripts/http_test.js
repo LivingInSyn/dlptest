@@ -32,7 +32,7 @@ async function downloadAndPostFile(fileUrl, postUrl) {
         }
 
         // Get the blob of the file
-        const blob = await downloadFileToBlob(fileUrl);
+        const blob = await downloadFileToBlob(response);
 
         // 2. Create a FormData object for the POST request
         const formData = new FormData();
@@ -65,4 +65,10 @@ async function downloadAndPostFile(fileUrl, postUrl) {
         console.error('Error downloading or posting file:', error);
         throw error; // Re-throw for handling by the caller
     }
+}
+
+// Helper function to convert a Response to Blob
+async function downloadFileToBlob(response) {
+    const blob = await response.blob();  // Convert the response to Blob format
+    return blob;
 }

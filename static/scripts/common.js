@@ -1,20 +1,30 @@
 // common.js
 
-async function downloadFileToBlob(fileUrl) {
+// Handle file download click
+async function fileClick(filename) {
     try {
-        // 1. Download the file
-        const response = await fetch(fileUrl);
-
+        // Trigger file download by opening the download URL
+        const response = await fetch(`/download/${filename}`);
         if (!response.ok) {
-            throw new Error(`Failed to fetch the file from ${fileUrl}. HTTP error! Status: ${response.status}`);
+            throw new Error(`Failed to download file: ${filename}`);
         }
-
-        // 2. Get the blob of the file
+        // Open the file content in the browser
         const blob = await response.blob();
-        return blob;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Download failed:", error);
     }
-    catch (error) {
-        console.error(`Error downloading file from ${fileUrl}:`, error);
-        throw error; // Re-throw the error to be handled by the caller if needed
-    }
+}
+
+// Handle file upload to Slack
+function slackFileClick(filename, webhookUrl) {
+    // Implement Slack file upload logic here (could involve API calls)
+    console.log("Uploading file to Slack:", filename);
 }

@@ -61,6 +61,19 @@ async function postFileToSlackWebhook(file, filename, webhookUrl, initialComment
     }
 }
 
+// Helper function to download file as a Blob
+async function downloadFileToBlob(fileUrl) {
+    const response = await fetch(fileUrl);
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch file from ${fileUrl}. HTTP error: ${response.status}`);
+    }
+
+    // Convert response to Blob
+    const blob = await response.blob();
+    return blob;
+}
+
 // Test function for Slack file posting
 async function testSlackPost() {
     const testWebhookUrl = "YOUR_SLACK_WEBHOOK_URL"; // Replace with your actual webhook URL

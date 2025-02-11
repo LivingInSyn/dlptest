@@ -1,11 +1,8 @@
-//DLfiles.go
-
 package main
 
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -38,6 +35,7 @@ func hashFile(filePath string) (string, error) {
 func hashDirectory(dirPath string) (map[string]DLFile, error) {
 	dlfiles := make(map[string]DLFile)
 
+	// Walk the directory to process files
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("accessing %s: %w", path, err)
@@ -48,11 +46,13 @@ func hashDirectory(dirPath string) (map[string]DLFile, error) {
 			return nil
 		}
 
+		// Hash the file
 		hash, err := hashFile(path)
 		if err != nil {
 			return fmt.Errorf("hashing %s: %w", path, err)
 		}
 
+		// Store the file info in the map
 		dlfiles[info.Name()] = DLFile{
 			Name: info.Name(),
 			Hash: hash,
@@ -85,29 +85,5 @@ func saveHashesToFile(dlfiles map[string]DLFile, outputPath string) error {
 
 	fmt.Printf("File hashes saved to %s\n", outputPath)
 	return nil
-}
 
-func main() {
-	// Get directory path from command-line arguments
-	dirPath := flag.String("dir", "", "Directory to hash files from")
-	outputFile := flag.String("out", "file_hashes.json", "Output file for JSON hash list")
-	flag.Parse()
-
-	if *dirPath == "" {
-		fmt.Println("Usage: go run DLFiles.go -dir <directory_path> [-out <output_json_file>]")
-		os.Exit(1)
-	}
-
-	// Hash directory contents
-	dlfiles, err := hashDirectory(*dirPath)
-	if err != nil {
-		fmt.Printf("Error hashing directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	// Save the hashes to a JSON file
-	if err := saveHashesToFile(dlfiles, *outputFile); err != nil {
-		fmt.Printf("Error saving hashes: %v\n", err)
-		os.Exit(1)
-	}
 }
