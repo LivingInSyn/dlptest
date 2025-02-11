@@ -12,15 +12,16 @@ import (
 )
 
 const (
-	uploadPath    = "./uploads"          // Directory to store uploaded files
-	downloadPath  = "./static/downloads" // Directory to serve files from
-	maxUploadSize = 350 * 1024 * 1024    // 350 MB
+	uploadPath    = "./uploads"
+	downloadPath  = "./static/downloads"
+	maxUploadSize = 350 * 1024 * 1024 // 350 MB
 )
 
 type DLFile struct {
 	Name string
 	Hash string
 }
+
 type DownloadTemplate struct {
 	Dlfs         []DLFile
 	UseSlack     bool
@@ -38,7 +39,7 @@ func main() {
 		SlackWebhook = ""
 	}
 	populateDLFiles()
-	// Create upload directory if it doesn't exist
+
 	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
 		os.MkdirAll(uploadPath, os.ModePerm)
 	}
@@ -47,10 +48,8 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/", serveTemplate)
-
 	http.HandleFunc("/upload", uploadFile)
 	http.Handle("/download/", http.StripPrefix("/download/", http.FileServer(http.Dir(downloadPath))))
-
 	http.HandleFunc("/availableFiles", getAvailableFiles)
 
 	fmt.Println("Server listening on port 8080")
@@ -67,7 +66,6 @@ func populateDLFiles() {
 
 func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("./templates/layout.html"))
-	// create the data for the page
 	dlfs := make([]DLFile, 0, len(DLFiles))
 	for _, v := range DLFiles {
 		dlfs = append(dlfs, v)
@@ -77,7 +75,6 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		SlackWebhook: SlackWebhook,
 		UseSlack:     SlackWebhook != "",
 	}
-	// execute the template
 	err := tmpl.Execute(w, dt)
 	if err != nil {
 		log.Print(err.Error())
@@ -95,10 +92,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	// http.Error(w, "File too large", http.StatusBadRequest)
-	// return
 
-	// Parse multipart form, setting max memory for file uploads
 	r.ParseMultipartForm(maxUploadSize)
 	if r.ContentLength > maxUploadSize {
 		http.Error(w, "File too large", http.StatusBadRequest)
@@ -108,13 +102,12 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("file")
 	if err != nil {
 		http.Error(w, "Error retrieving the file", http.StatusBadRequest)
-		fmt.Println(err)
+		log.Println("Error retrieving the file:", err)
 		return
 	}
 	defer file.Close()
 
-	// Sanitize filename to prevent path traversal attacks
-	filename := filepath.Base(handler.Filename) // Extract only the file name
+	filename := filepath.Base(handler.Filename)
 	if filename == "." || filename == "/" {
 		http.Error(w, "Invalid filename", http.StatusBadRequest)
 		return
@@ -123,35 +116,39 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	uploadFile, err := os.OpenFile(filepath.Join(uploadPath, filename), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		http.Error(w, "Error creating the file for upload", http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Println("Error creating file:", err)
 		return
 	}
 	defer uploadFile.Close()
 	defer os.Remove(filepath.Join(uploadPath, filename))
 
-	// Copy the uploaded file to the server's filesystem
 	_, err = io.Copy(uploadFile, file)
 	if err != nil {
 		http.Error(w, "Error copying the file", http.StatusInternalServerError)
-		fmt.Println(err)
+		log.Println("Error copying file:", err)
 		return
 	}
 
-	// check the hash
 	hashval, err := hashFile(filepath.Join(uploadPath, filename))
 	if err != nil {
 		log.Printf("Error hashing uploaded file: %s", err)
 		http.Error(w, "Error retrieving the file", http.StatusInternalServerError)
 		return
 	}
-	dlfilekey := handler.Filename
-	if hashval != DLFiles[dlfilekey].Hash {
-		log.Printf("Hash for %s doesn't match. Got %s, expected %s\n", uploadFile.Name(), hashval, DLFiles[dlfilekey].Hash)
-		http.Error(w, "Hash for file received by server doesn't match sample.", http.StatusUnauthorized)
+
+	expectedFile, exists := DLFiles[filename]
+	if !exists {
+		log.Printf("Uploaded file %s does not match any expected files.", filename)
+		http.Error(w, "Uploaded file does not match any expected files.", http.StatusUnauthorized)
 		return
-	} else {
-		log.Printf("Hash for %s matches!\n", uploadFile.Name())
 	}
 
-	fmt.Fprintf(w, "File uploaded successfully: %s\n", handler.Filename)
+	if hashval != expectedFile.Hash {
+		log.Printf("File hash mismatch: Expected [%s], Received [%s]", expectedFile.Hash, hashval)
+		http.Error(w, "Hash for file received by server doesn't match sample.", http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("File %s uploaded successfully with matching hash!", filename)
+	fmt.Fprintf(w, "File uploaded successfully: %s\n", filename)
 }
