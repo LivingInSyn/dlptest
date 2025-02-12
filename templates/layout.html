@@ -1,47 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload to S3</title>
-    <link rel="stylesheet" href="/static/stylesheets/main.css">
+    <title>Secure S3 Upload</title>
+
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Include Custom Stylesheet -->
+    <link rel="stylesheet" href="/stylesheets/main.css">
+
+    <!-- Optional favicon (if available) -->
+    <!-- <link rel="icon" type="image/x-icon" href="/images/favicon.ico"> -->
 </head>
+
 <body>
-    <h1>Upload File to S3</h1>
+    <div class="container">
+        <h1 class="text-center mt-5">Secure File Upload</h1>
 
-    <!-- Form to upload a file -->
-    <form id="upload-form" action="" method="post" enctype="multipart/form-data">
-        <input type="file" id="file" name="file" required />
-        <button type="submit">Upload</button>
-    </form>
+        <!-- Normal File Upload -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6 text-center">
+                <input type="file" id="fileInput" class="form-control-file">
+                <button onclick="uploadFile()" class="btn btn-primary mt-3">Upload File Normally</button>
+            </div>
+        </div>
 
-    <script>
-        document.getElementById("upload-form").onsubmit = async function(event) {
-            event.preventDefault();
+        <!-- Secure File Upload with S3 Token -->
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-6 text-center">
+                <button onclick="uploadMaskedFile()" class="btn btn-success mt-3">Generate S3 Upload Token & Secure Upload</button>
+            </div>
+        </div>
 
-            // Get the pre-signed URL
-            const response = await fetch("/generate-s3-token");
-            const data = await response.json();
+        <p id="message" class="text-center mt-3"></p>
+    </div>
 
-            const file = document.getElementById("file").files[0];
-            const formData = new FormData();
-
-            // Add the fields to the form data
-            formData.append("key", data.fields.key);
-            formData.append("file", file);
-
-            // Upload the file to S3 using the pre-signed URL
-            const uploadResponse = await fetch(data.url, {
-                method: "PUT",
-                body: formData,
-            });
-
-            if (uploadResponse.ok) {
-                alert("File uploaded successfully!");
-            } else {
-                alert("File upload failed.");
-            }
-        };
-    </script>
+    <!-- Include JS files -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/static/scripts/upload_files.js"></script>
 </body>
 </html>
