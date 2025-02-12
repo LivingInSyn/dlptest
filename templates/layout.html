@@ -3,29 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload to S3</title>
-    <link rel="stylesheet" href="static/stylesheets/main.css">
+    <title>File Upload to S3</title>
+    <link rel="stylesheet" href="/static/stylesheets/main.css">
 </head>
 <body>
-    <h1>Upload a File to S3</h1>
-    <button id="generate-s3-token-btn">Generate Pre-Signed URL</button>
+    <h1>Upload File to S3</h1>
 
-    <div id="s3-url"></div>
+    <!-- Form to upload a file -->
+    <form id="upload-form" action="" method="post" enctype="multipart/form-data">
+        <input type="file" id="file" name="file" required />
+        <button type="submit">Upload</button>
+    </form>
 
-    <script src="static/scripts/common.js"></script>
     <script>
-        // Function to fetch pre-signed URL
-        document.getElementById("generate-s3-token-btn").addEventListener("click", function () {
-            fetch("/generate-s3-token")
-                .then(response => response.json())
-                .then(data => {
-                    console.log("Pre-signed URL: ", data.url);
-                    document.getElementById("s3-url").innerText = "Pre-Signed URL: " + data.url;
-                })
-                .catch(error => {
-                    console.error("Error fetching the pre-signed URL:", error);
-                });
-        });
+        document.getElementById("upload-form").onsubmit = async function(event) {
+            event.preventDefault();
+
+            // Get the pre-signed URL
+            const response = await fetch("/generate-s3-token");
+            const data = await response.json();
+
+            const file = document.getElementById("file").files[0];
+            const formData = new FormData();
+
+            // Add the fields to the form data
+            formData.append("key", data.fields.key);
+            formData.append("file", file);
+
+            // Upload the file to S3 using the pre-signed URL
+            const uploadResponse = await fetch(data.url, {
+                method: "PUT",
+                body: formData,
+            });
+
+            if (uploadResponse.ok) {
+                alert("File uploaded successfully!");
+            } else {
+                alert("File upload failed.");
+            }
+        };
     </script>
 </body>
 </html>

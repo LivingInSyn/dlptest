@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
+// S3Config contains the S3 credentials and configuration
 type S3Config struct {
 	BucketName string
 	Region     string
@@ -22,6 +24,7 @@ type S3Config struct {
 	Expiration time.Duration
 }
 
+// PreSignedURLResponse represents the S3 pre-signed URL response
 type PreSignedURLResponse struct {
 	URL    string            `json:"url"`
 	Fields map[string]string `json:"fields"`
@@ -54,7 +57,7 @@ func GenerateS3PreSignedURL(w http.ResponseWriter, r *http.Request) {
 	s3Client := s3.NewFromConfig(cfg)
 	presignClient := s3.NewPresignClient(s3Client)
 
-	// Generate a unique file name
+	// Generate a unique file name (e.g., based on the current timestamp)
 	fileName := fmt.Sprintf("test-file-%d.txt", time.Now().Unix())
 
 	// Generate a pre-signed URL for the S3 upload
@@ -84,11 +87,28 @@ func GenerateS3PreSignedURL(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func main() {
-	// Serve static files (HTML, JS, CSS, etc.)
-	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static"))))
+// ServeLayout serves the layout HTML page
+func ServeLayout(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("templates/layout.html")
+	if err != nil {
+		http.Error(w, "Unable to load layout", http.StatusInternalServerError)
+		return
+	}
 
-	// Handle the pre-signed URL generation
+	err = tmpl.Execute(w, nil)
+	if err != nil {
+		http.Error(w, "Unable to render layout", http.StatusInternalServerError)
+	}
+}
+
+func main() {
+	// Serve static files (CSS, JS, etc.) from the "static" folder
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	// Serve the layout HTML page
+	http.HandleFunc("/", ServeLayout)
+
+	// Handle pre-signed URL generation
 	http.HandleFunc("/generate-s3-token", GenerateS3PreSignedURL)
 
 	log.Println("Server starting on :8080")
