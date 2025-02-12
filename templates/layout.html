@@ -1,91 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>DLP Test</title>
-
-    <!-- Bootstrap CDN for styling -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom stylesheet -->
-    <link rel="stylesheet" href="/static/stylesheets/main.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 File Upload</title>
 </head>
 <body>
-    <div class="container-fluid">
-        <!-- Header Section -->
-        <div class="row">
-            <h3 class="mt-3">HTTP POST Files</h3>
-        </div>
-
-        <!-- Dynamically Rendered Buttons for Files -->
-        {{range .Dlfs}}
-            <div class="row justify-content-start">
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-primary" id="{{.Name}}" data-filename="{{.Name}}" onclick="fileClick(this.dataset.filename);" style="width: 100%;">{{.Name}}</button>
-                </div>
-                <span class="col-md-2" id="{{printf "%s-status" .Name}}">Not Run</span>
-            </div>
-        {{end}}
-
-        <!-- Download Section -->
-        <div class="row">
-            <h3 class="mt-3">Downloads</h3>
-        </div>
-        {{range .Dlfs}}
-        <div class="row justify-content-start">
-            <div class="col-md-2">
-                <form method="get" action="/download/{{.Name}}">
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">{{.Name}}</button>
-                </form>
-            </div>
-        </div>
-        {{end}}
-
-        <!-- Custom File Upload -->
-        <div class="row mt-3">
-            <h3>Custom Upload</h3>
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <form method="post" action="/upload" enctype="multipart/form-data" id="custom-upload-form">
-                    <div class="form-group">
-                        <label for="formFile" class="form-label">Upload a Custom File</label>
-                        <input class="form-control" type="file" id="formFile" name="file" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary submitbutton mt-2">Submit</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Slack File Upload (Conditional Rendering) -->
-        {{if .UseSlack}}
-        <div class="row mt-3">
-            <h3>Slack Upload</h3>
-        </div>
-        {{range .Dlfs}}
-            <div class="row justify-content-start">
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-primary" id="slack-{{.Name}}" data-filename="{{.Name}}" onclick="slackFileClick(this.dataset.filename, '{{$.SlackWebhook}}');" style="width: 100%;">{{.Name}}</button>
-                </div>
-                <span class="col-md-2" id="{{printf "%s-status" .Name}}">Not Run</span>
-            </div>
-        {{end}}
-        {{end}}
-
+    <div id="s3-test">
+        <h2>S3 Test</h2>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload File to S3</button>
+        <p id="status"></p>
     </div>
 
-    <!-- Footer Section -->
-    <footer class="text-center mt-5">
-        <p>&copy; 2025 Your Company. All rights reserved.</p>
-        <p><a href="mailto:support@yourcompany.com" class="text-decoration-none">Contact Support</a></p>
-    </footer>
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            
+            // Get the selected file
+            const file = fileInput.files[0];
+            if (!file) {
+                status.textContent = "Please select a file to upload.";
+                return;
+            }
 
-    <!-- Bootstrap and Custom Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/scripts/common.js"></script>
-    <script src="/static/scripts/http_test.js"></script>
-    <script src="/static/scripts/slack_test.js"></script>
+            // Call the backend to get the pre-signed URL
+            try {
+                const response = await fetch("/generate-s3-token", {
+                    method: "GET",
+                });
+
+                const data = await response.json();
+                const { url, fields } = data;
+
+                // Create FormData to upload the file using pre-signed URL
+                const formData = new FormData();
+                formData.append("file", file);
+                Object.keys(fields).forEach((key) => {
+                    formData.append(key, fields[key]);
+                });
+
+                // Upload the file to S3 using the pre-signed URL
+                const uploadResponse = await fetch(url, {
+                    method: "PUT",
+                    body: formData,
+                });
+
+                if (uploadResponse.ok) {
+                    status.textContent = "File uploaded successfully!";
+                } else {
+                    status.textContent = "File upload failed.";
+                }
+            } catch (error) {
+                console.error("Error uploading file:", error);
+                status.textContent = "An error occurred during the upload.";
+            }
+        }
+    </script>
 </body>
 </html>
