@@ -1,36 +1,72 @@
-// Function to download a file and return it as a Blob
-async function downloadFileToBlob(fileUrl) {
-    try {
-        console.log(`Downloading file from: ${fileUrl}`);
+function uploadFile(uploadType) {
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+    const progressBar = document.getElementById("uploadProgress");
+    const message = document.getElementById("message");
 
-        const response = await fetch(fileUrl);
+    if (!file) {
+        message.textContent = "Please select a file to upload.";
+        return;
+    }
 
-        if (!response.ok) {
-            throw new Error(`Failed to download file. HTTP Status: ${response.status} - ${response.statusText}`);
-        }
-
-        // Convert to Blob
-        const blob = await response.blob();
-        console.log("File successfully downloaded as Blob.");
-        return blob;
-    } catch (error) {
-        console.error("Error downloading file:", error.message);
-        throw error;
+    progressBar.style.display = "block";
+    progressBar.value = 0;
+    
+    if (uploadType === "normal") {
+        normalUpload(file);
+    } else if (uploadType === "secure") {
+        secureUpload(file);
+    } else {
+        message.textContent = "Invalid upload type.";
     }
 }
 
-// Function to create FormData with pre-signed data for S3 uploads
-function createFormData(file, preSignedData) {
-    if (!file || !preSignedData) {
-        throw new Error('Both file and pre-signed data must be provided.');
-    }
+function normalUpload(file) {
+    const message = document.getElementById("message");
+    const progressBar = document.getElementById("uploadProgress");
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('key', preSignedData.fields.key);
-    formData.append('AWSAccessKeyId', preSignedData.fields.AWSAccessKeyId); // Ensure this is dynamically set
-    formData.append('policy', preSignedData.fields.policy);
-    formData.append('signature', preSignedData.fields.signature);
+    formData.append("file", file);
 
-    return formData;
+    fetch("/upload", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        message.textContent = "File uploaded successfully!";
+        progressBar.value = 100;
+    })
+    .catch(error => {
+        message.textContent = "Error uploading file: " + error;
+    });
+}
+
+function secureUpload(file) {
+    const message = document.getElementById("message");
+    const progressBar = document.getElementById("uploadProgress");
+
+    fetch("/generate-s3-token")
+    .then(response => response.json())
+    .then(data => {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        return fetch(data.uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: { "Content-Type": file.type }
+        });
+    })
+    .then(response => {
+        if (response.ok) {
+            message.textContent = "Secure file uploaded to S3 successfully!";
+            progressBar.value = 100;
+        } else {
+            throw new Error("S3 Upload Failed");
+        }
+    })
+    .catch(error => {
+        message.textContent = "Error in secure upload: " + error;
+    });
 }
