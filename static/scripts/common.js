@@ -1,5 +1,3 @@
-// common.js
-
 // Function to download a file and return it as a Blob
 async function downloadFileToBlob(fileUrl) {
     try {

@@ -1,5 +1,3 @@
-// slack_tests.js
-
 // Function to initiate the file click process for Slack upload
 async function slackFileClick(filename, webhook) {
     const dlurl = `http://localhost:8080/static/downloads/${filename}`;

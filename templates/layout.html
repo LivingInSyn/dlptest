@@ -20,21 +20,21 @@
         <div class="row justify-content-center mt-4">
             <div class="col-md-6 text-center">
                 <input type="file" id="fileInput" class="form-control-file mb-3">
-                <button onclick="uploadFile()" class="btn btn-primary mt-3">Upload File Normally</button>
+                <button id="normalUploadBtn" onclick="uploadFile('normal')" class="btn btn-primary mt-3">Upload File Normally</button>
             </div>
         </div>
 
         <!-- Secure File Upload with S3 Token -->
         <div class="row justify-content-center mt-4">
             <div class="col-md-6 text-center">
-                <button onclick="uploadMaskedFile()" class="btn btn-success mt-3">Generate S3 Upload Token & Secure Upload</button>
+                <button id="secureUploadBtn" onclick="uploadFile('secure')" class="btn btn-success mt-3">Generate S3 Upload Token & Secure Upload</button>
             </div>
         </div>
 
         <!-- Progress Bar -->
         <div class="row justify-content-center mt-4">
             <div class="col-md-6 text-center">
-                <progress id="uploadProgress" value="0" max="100" style="width: 100%; height: 30px;"></progress>
+                <progress id="uploadProgress" value="0" max="100" style="width: 100%; height: 30px; display: none;"></progress>
             </div>
         </div>
 

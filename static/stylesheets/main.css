@@ -59,6 +59,16 @@ button:focus {
     background-color: #218838;
 }
 
+/* Danger Button */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
 /* File Input Styling */
 input[type="file"] {
     display: none;
@@ -131,10 +141,44 @@ input[type="file"] {
         font-size: 1.8rem;
     }
 }
+
 /* Additional styling for progress bar */
 progress {
     margin-top: 20px;
     width: 100%;
     height: 30px;
+    border-radius: 5px;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Styling for progress bar for normal upload */
+progress[value] {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+}
+
+progress[value]::-webkit-progress-bar {
+    background-color: #e0e0e0;
+    border-radius: 5px;
+}
+
+progress[value]::-webkit-progress-value {
+    background-color: #28a745; /* Green for normal upload */
+    border-radius: 5px;
+}
+
+progress[value]::-moz-progress-bar {
+    background-color: #28a745; /* Green for normal upload */
+    border-radius: 5px;
+}
+
+/* Styling for progress bar for secure upload */
+.progress-red[value]::-webkit-progress-value {
+    background-color: #dc3545; /* Red for secure upload */
+}
+
+.progress-red[value]::-moz-progress-bar {
+    background-color: #dc3545; /* Red for secure upload */
 }
 

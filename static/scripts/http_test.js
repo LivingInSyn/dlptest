@@ -1,5 +1,3 @@
-// http_test.js
-
 // Function to handle the file click and process the download/upload
 async function fileClick(filename) {
     const dlurl = `http://localhost:8080/static/downloads/${filename}`;
