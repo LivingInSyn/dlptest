@@ -60,14 +60,3 @@ async function postFileToSlackWebhook(file, filename, webhookUrl, initialComment
         throw error;
     }
 }
-
-// Helper function to download file as a Blob
-async function downloadFileToBlob(fileUrl) {
-    const response = await fetch(fileUrl);
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch file from ${fileUrl}. HTTP error: ${response.status}`);
-    }
-
-    return response.blob();
-}
