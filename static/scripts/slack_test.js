@@ -1,4 +1,5 @@
-// Function to initiate the file click process for Slack upload
+/*slack_test.js*/
+
 async function slackFileClick(filename, webhook) {
     const dlurl = `http://localhost:8080/static/downloads/${filename}`;
     const statusElement = document.getElementById("status");
@@ -6,13 +7,11 @@ async function slackFileClick(filename, webhook) {
     try {
         statusElement.textContent = "Downloading file...";
 
-        // Download the file as a blob
         const blob = await downloadFileToBlob(dlurl);
 
         statusElement.textContent = "Uploading file to Slack...";
 
-        // Upload file to Slack via webhook
-        await postFileToSlackWebhook(blob, filename, webhook);
+        await uploadFileToSlack(blob, filename);
 
         statusElement.textContent = "File uploaded successfully!";
     } catch (error) {
@@ -21,42 +20,26 @@ async function slackFileClick(filename, webhook) {
     }
 }
 
-// Function to post a file to Slack via webhook
-async function postFileToSlackWebhook(file, filename, webhookUrl, initialComment = "") {
-    if (!(file instanceof Blob)) {
-        throw new Error("File must be a Blob object.");
-    }
-
-    if (typeof filename !== 'string' || !filename.trim()) {
-        throw new Error("Filename must be a non-empty string.");
-    }
-
-    if (typeof webhookUrl !== 'string' || !webhookUrl.trim()) {
-        throw new Error("Webhook URL must be a non-empty string.");
-    }
+async function uploadFileToSlack(file, filename) {
+    const slackToken = "YOUR_SLACK_BOT_TOKEN"; // Replace with your Slack token
+    const slackChannel = "YOUR_SLACK_CHANNEL_ID"; // Replace with your Slack channel ID
 
     const formData = new FormData();
-    formData.append('file', file, filename);
-    if (initialComment) {
-        formData.append('initial_comment', initialComment);
-    }
+    formData.append("file", file, filename);
+    formData.append("channels", slackChannel);
 
     try {
-        const response = await fetch(webhookUrl, {
-            method: 'POST',
-            body: formData,
+        const response = await fetch("https://slack.com/api/files.upload", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${slackToken}` },
+            body: formData
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Slack webhook POST error: ${response.status} - ${errorText}`);
-        }
-
         const result = await response.json();
-        console.log('File posted to Slack:', result);
-        return result;
+        if (!result.ok) throw new Error(result.error);
+
+        console.log("File posted to Slack:", result);
     } catch (error) {
-        console.error('Error posting file to Slack:', error);
-        throw error;
+        console.error("Error posting file to Slack:", error);
     }
 }
