@@ -3,60 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S3 File Upload</title>
+    <title>Upload to S3</title>
+    <link rel="stylesheet" href="static/stylesheets/main.css">
 </head>
 <body>
-    <div id="s3-test">
-        <h2>S3 Test</h2>
-        <input type="file" id="fileInput">
-        <button onclick="uploadFile()">Upload File to S3</button>
-        <p id="status"></p>
-    </div>
+    <h1>Upload a File to S3</h1>
+    <button id="generate-s3-token-btn">Generate Pre-Signed URL</button>
 
+    <div id="s3-url"></div>
+
+    <script src="static/scripts/common.js"></script>
     <script>
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const status = document.getElementById('status');
-            
-            // Get the selected file
-            const file = fileInput.files[0];
-            if (!file) {
-                status.textContent = "Please select a file to upload.";
-                return;
-            }
-
-            // Call the backend to get the pre-signed URL
-            try {
-                const response = await fetch("/generate-s3-token", {
-                    method: "GET",
+        // Function to fetch pre-signed URL
+        document.getElementById("generate-s3-token-btn").addEventListener("click", function () {
+            fetch("/generate-s3-token")
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Pre-signed URL: ", data.url);
+                    document.getElementById("s3-url").innerText = "Pre-Signed URL: " + data.url;
+                })
+                .catch(error => {
+                    console.error("Error fetching the pre-signed URL:", error);
                 });
-
-                const data = await response.json();
-                const { url, fields } = data;
-
-                // Create FormData to upload the file using pre-signed URL
-                const formData = new FormData();
-                formData.append("file", file);
-                Object.keys(fields).forEach((key) => {
-                    formData.append(key, fields[key]);
-                });
-
-                // Upload the file to S3 using the pre-signed URL
-                const uploadResponse = await fetch(url, {
-                    method: "PUT",
-                    body: formData,
-                });
-
-                if (uploadResponse.ok) {
-                    status.textContent = "File uploaded successfully!";
-                } else {
-                    status.textContent = "File upload failed.";
-                }
-            } catch (error) {
-                console.error("Error uploading file:", error);
-                status.textContent = "An error occurred during the upload.";
-            }
-        }
+        });
     </script>
 </body>
 </html>

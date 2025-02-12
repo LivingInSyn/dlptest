@@ -1,3 +1,5 @@
+//common.js
+
 async function downloadFileToBlob(fileUrl) {
     try {
         console.log(`Downloading file from: ${fileUrl}`);
