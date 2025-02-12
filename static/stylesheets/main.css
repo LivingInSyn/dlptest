@@ -1,59 +1,133 @@
-/* General Body Styling */
+/* General Body Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f8f9fa; /* Light background color */
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    margin: 0;
+    padding: 0;
 }
 
-/* Header Styling */
+/* Container Styles */
+.container {
+    margin-top: 50px;
+}
+
+/* Header Styles */
 h1 {
-    font-size: 2.5em; /* Larger header font size */
+    font-size: 2.5rem;
     font-weight: bold;
-    color: #007BFF; /* Blue color for the header */
+    color: #333;
+    margin-bottom: 40px;
 }
 
 /* Button Styling */
 button {
-    width: 100%; /* Buttons stretch to full width */
-    padding: 10px;
-    font-size: 1.1em; /* Slightly larger text for better readability */
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 4px;
+    font-size: 1rem;
+    padding: 10px 20px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.5);
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Success Button */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
 }
 
 /* File Input Styling */
 input[type="file"] {
-    padding: 10px 0; /* Space inside the file input box */
+    display: none;
+}
+
+.file-upload-label {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.file-upload-label:hover {
+    background-color: #0056b3;
+}
+
+/* Centered Row Layout */
+.row.justify-content-center {
+    justify-content: center;
+}
+
+.col-md-6 {
+    margin-bottom: 20px;
 }
 
 /* Message Styling */
 #message {
-    font-size: 1.1em;
-    color: #28a745; /* Green color for success message */
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #28a745;
+    margin-top: 20px;
 }
 
-/* Button Customizations */
-button:hover {
-    opacity: 0.8; /* Slightly reduce opacity on hover */
+/* Spacing for Forms */
+.mb-3 {
+    margin-bottom: 1.5rem !important;
 }
 
-/* Padding around container */
-.container {
-    padding: 20px;
-    background-color: #ffffff; /* White background for the main content */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
-}
-
-/* Responsive design */
+/* Responsive Adjustments */
 @media (max-width: 768px) {
     h1 {
-        font-size: 2em; /* Smaller header on small screens */
+        font-size: 2rem;
     }
 
+    .col-md-6 {
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
     .container {
-        padding: 15px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
-    button {
-        font-size: 1em; /* Adjust button text size for smaller screens */
+    .btn {
+        font-size: 1.1rem;
+        padding: 12px 20px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
     }
 }

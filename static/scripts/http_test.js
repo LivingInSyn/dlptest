@@ -1,8 +1,9 @@
 // http_test.js
 
+// Function to handle the file click and process the download/upload
 async function fileClick(filename) {
-    let dlurl = `http://localhost:8080/static/downloads/${filename}`;
-    let posturl = "http://localhost:8080/upload";
+    const dlurl = `http://localhost:8080/static/downloads/${filename}`;
+    const posturl = "http://localhost:8080/upload";
     
     try {
         let result = await downloadAndPostFile(dlurl, posturl);
@@ -12,33 +13,20 @@ async function fileClick(filename) {
     }
 }
 
+// Function to download and post the file
 async function downloadAndPostFile(fileUrl, postUrl) {
-    // Extract filename from URL
-    let filename = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
-    if (!filename) { // If no filename found in URL, generate a default name
-        filename = "downloaded_file";
-    }
+    const filename = fileUrl.substring(fileUrl.lastIndexOf('/') + 1);
+    const status_span = document.getElementById(`${filename}-status`);
 
-    // Check if the status span exists before updating
-    const id_to_update = `${filename}-status`;
-    const status_span = document.getElementById(id_to_update);
-    
     try {
-        // 1. Download the file
-        const response = await fetch(fileUrl);
+        // Download the file as a Blob
+        const blob = await downloadFileToBlob(fileUrl);
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch file from ${fileUrl}. HTTP error: ${response.status}`);
-        }
-
-        // Get the blob of the file
-        const blob = await downloadFileToBlob(response);
-
-        // 2. Create a FormData object for the POST request
+        // Create FormData for the POST request
         const formData = new FormData();
-        formData.append('file', blob, filename); // 'file' is the expected field name by the server
+        formData.append('file', blob, filename);
 
-        // 3. POST the file
+        // Send the file to the server via POST request
         const postResponse = await fetch(postUrl, {
             method: 'POST',
             body: formData,
@@ -57,18 +45,12 @@ async function downloadAndPostFile(fileUrl, postUrl) {
         }
 
         console.log('File posted successfully');
-        return await postResponse.json(); // Assuming the server returns a JSON response
+        return await postResponse.json();
     } catch (error) {
         if (status_span) {
             status_span.textContent = `POST not successful - ${error.message}`;
         }
         console.error('Error downloading or posting file:', error);
-        throw error; // Re-throw for handling by the caller
+        throw error;
     }
-}
-
-// Helper function to convert a Response to Blob
-async function downloadFileToBlob(response) {
-    const blob = await response.blob();  // Convert the response to Blob format
-    return blob;
 }
