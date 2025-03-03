@@ -1,17 +1,15 @@
-/*slack_test.js*/
+/* slack_test.js */
 
 async function slackFileClick(filename, webhook) {
     const dlurl = `http://localhost:8080/static/downloads/${filename}`;
-    const statusElement = document.getElementById("status");
+    const statusElement = document.getElementById(`${filename}-status`);
 
     try {
         statusElement.textContent = "Downloading file...";
-
         const blob = await downloadFileToBlob(dlurl);
 
         statusElement.textContent = "Uploading file to Slack...";
-
-        await uploadFileToSlack(blob, filename);
+        await uploadFileToSlack(blob, filename, webhook);
 
         statusElement.textContent = "File uploaded successfully!";
     } catch (error) {
@@ -20,18 +18,13 @@ async function slackFileClick(filename, webhook) {
     }
 }
 
-async function uploadFileToSlack(file, filename) {
-    const slackToken = "YOUR_SLACK_BOT_TOKEN"; // Replace with your Slack token
-    const slackChannel = "YOUR_SLACK_CHANNEL_ID"; // Replace with your Slack channel ID
-
+async function uploadFileToSlack(file, filename, webhook) {
     const formData = new FormData();
     formData.append("file", file, filename);
-    formData.append("channels", slackChannel);
 
     try {
-        const response = await fetch("https://slack.com/api/files.upload", {
+        const response = await fetch(webhook, {
             method: "POST",
-            headers: { Authorization: `Bearer ${slackToken}` },
             body: formData
         });
 

@@ -1,4 +1,4 @@
-/*common.js*/
+/* common.js */
 
 function uploadFile(uploadType) {
     const fileInput = document.getElementById("fileInput");
@@ -14,34 +14,10 @@ function uploadFile(uploadType) {
     progressBar.style.display = "block";
     progressBar.value = 0;
 
-    if (uploadType === "normal") {
-        normalUpload(file);
-    } else if (uploadType === "secure") {
+    if (uploadType === "secure") {
         secureUpload(file);
     } else {
         message.textContent = "Invalid upload type.";
-    }
-}
-
-async function normalUpload(file) {
-    const message = document.getElementById("message");
-    const progressBar = document.getElementById("uploadProgress");
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-        const response = await fetch("/upload", {
-            method: "POST",
-            body: formData
-        });
-
-        if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`);
-
-        message.textContent = "File uploaded successfully!";
-        progressBar.value = 100;
-    } catch (error) {
-        message.textContent = "Error uploading file: " + error.message;
     }
 }
 

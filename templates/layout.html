@@ -1,55 +1,83 @@
-<!--Layout.html-->
 <!doctype html>
-<html lang="en">
+<html>
 <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure S3 Upload</title>
-
-    <!-- Include Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Include Custom Stylesheet -->
-    <link rel="stylesheet" href="/stylesheets/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DLP Test</title>
+    <link rel="stylesheet" href="static/stylesheets/main.css">
 </head>
-
 <body>
-    <div class="container">
-        <h1 class="text-center mt-5">Secure File Upload</h1>
-
-        <!-- Normal File Upload -->
-        <div class="row justify-content-center mt-4">
-            <div class="col-md-6 text-center">
-                <input type="file" id="fileInput" class="form-control-file mb-3">
-                <button id="normalUploadBtn" onclick="uploadFile('normal')" class="btn btn-primary mt-3">Upload File Normally</button>
+    <div class="container-fluid">
+        <header class="mb-4">
+            <h1 class="text-center">DLP Test Interface</h1>
+        </header>
+        <div class="row">
+            <h3>HTTP POST Files</h3>
+        </div>
+        {{range .Dlfs}}
+        <div class="row justify-content-start mb-2 align-items-center">
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary w-100" id="{{.Name}}" data-filename="{{.Name}}" onclick="fileClick(this.dataset.filename);">
+                    {{.Name}}
+                </button>
+            </div>
+            <div class="col-md-2" id="{{printf "%s-status" .Name}}">
+                Not Run
             </div>
         </div>
+        {{end}}
 
-        <!-- Secure File Upload with S3 Token -->
-        <div class="row justify-content-center mt-4">
-            <div class="col-md-6 text-center">
-                <button id="secureUploadBtn" onclick="uploadFile('secure')" class="btn btn-success mt-3">Generate S3 Upload Token & Secure Upload</button>
+        <div class="row">
+            <h3>Downloads</h3>
+        </div>
+        {{range .Dlfs}}
+        <div class="row justify-content-start mb-2">
+            <div class="col-md-2">
+                <form method="get" action="/static/downloads/{{.Name}}">
+                    <button type="submit" class="btn btn-primary w-100">{{.Name}}</button>
+                </form>
             </div>
         </div>
+        {{end}}
 
-        <!-- Progress Bar -->
-        <div class="row justify-content-center mt-4">
-            <div class="col-md-6 text-center">
-                <progress id="uploadProgress" value="0" max="100" style="width: 100%; height: 30px; display: none;"></progress>
+        <div class="row">
+            <h3>Custom Upload</h3>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <form method="post" action="/upload" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Upload a custom file</label>
+                        <input class="form-control" type="file" id="formFile" name="file">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
             </div>
         </div>
-
-        <p id="message" class="text-center mt-3"></p>
+        
+        {{ if .UseSlack }}
+        <div class="row">
+            <h3>Slack Upload</h3>
+        </div>
+        {{range .Dlfs}}
+        <div class="row justify-content-start mb-2 align-items-center">
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary w-100" id="slack-{{.Name}}" data-filename="{{.Name}}" onclick="slackFileClick(this.dataset.filename, '{{$.SlackWebhook}}');">
+                    {{.Name}}
+                </button>
+            </div>
+            <div class="col-md-2" id="{{printf "%s-status" .Name}}">
+                Not Run
+            </div>
+        </div>
+        {{end}}
+        {{ end }}
     </div>
 
-    <!-- Include JS files -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Include Common JavaScript -->
-    <script src="/javascripts/common.js"></script>
-    <script src="/javascripts/http_test.js"></script>
-    <script src="/javascripts/slack_test.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/static/scripts/common.js"></script>
+    <script src="/static/scripts/http_test.js"></script>
+    <script src="/static/scripts/slack_test.js"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
-/*http_test.js*/
-
+/* http_test.js */
 
 async function fileClick(filename, uploadType = "normal") {
     const dlurl = `http://localhost:8080/static/downloads/${filename}`;
@@ -20,9 +19,7 @@ async function downloadAndPostFile(fileUrl, postUrl, uploadType) {
     try {
         const blob = await downloadFileToBlob(fileUrl);
 
-        if (uploadType === "normal") {
-            await normalUpload(blob, filename, postUrl, statusSpan);
-        } else if (uploadType === "secure") {
+        if (uploadType === "secure") {
             await secureUpload(blob, filename, statusSpan);
         }
 
@@ -32,34 +29,20 @@ async function downloadAndPostFile(fileUrl, postUrl, uploadType) {
             statusSpan.textContent = `POST not successful - ${error.message}`;
         }
         console.error("Error downloading or posting file:", error);
+        throw error;
     }
 }
 
 async function downloadFileToBlob(fileUrl) {
-    const response = await fetch(fileUrl);
-    if (!response.ok) throw new Error(`Failed to download file. Status: ${response.status}`);
-    return await response.blob();
-}
-
-async function normalUpload(file, filename, postUrl, statusSpan) {
-    const formData = new FormData();
-    formData.append("file", file, filename);
-
     try {
-        const response = await fetch(postUrl, { method: "POST", body: formData });
-
-        if (!response.ok) throw new Error(`POST error: ${response.status}`);
-
-        if (statusSpan) {
-            statusSpan.textContent = "POST successful";
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        return await response.json();
+        return await response.blob();
     } catch (error) {
-        if (statusSpan) {
-            statusSpan.textContent = `POST not successful - ${error.message}`;
-        }
-        console.error("Error during normal upload:", error);
+        console.error("Error downloading file:", error);
+        throw error;
     }
 }
 
