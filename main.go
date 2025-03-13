@@ -218,6 +218,17 @@ func generateS3PreSignedURL(w http.ResponseWriter, r *http.Request) {
 	// Create a context
 	ctx := context.Background()
 
+	// get the filename from the parameter
+	// /generateS3Token?filename=foo
+	query := r.URL.Query()
+	reqFile, exists := query["filename"]
+	if !exists || len(reqFile) == 0 {
+		//fmt.Println("filters not present")
+		log.Println("no filename in s3 URL request")
+		http.Error(w, "No Filename", http.StatusBadRequest)
+		return
+	}
+
 	// Load AWS configuration
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(s3Config.AccessKey, s3Config.SecretKey, "")),
@@ -233,7 +244,8 @@ func generateS3PreSignedURL(w http.ResponseWriter, r *http.Request) {
 	presignClient := s3.NewPresignClient(s3Client)
 
 	// Generate a unique file name (e.g., based on the current timestamp)
-	fileName := fmt.Sprintf("test-file-%d.txt", time.Now().Unix())
+	// TODO: get the file name under test
+	fileName := fmt.Sprintf("%s-%d.txt", reqFile[0], time.Now().Unix())
 
 	// Generate a pre-signed URL for the S3 upload
 	req := &s3.PutObjectInput{
