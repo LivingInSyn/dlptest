@@ -30,6 +30,7 @@ type DLFile struct {
 }
 type DownloadTemplate struct {
 	Dlfs         []DLFile
+	UseS3        bool
 	UseSlack     bool
 	SlackWebhook string
 }
@@ -55,9 +56,13 @@ var s3Config = S3Config{
 	SecretKey:  "your-secret-key",
 	Expiration: 15 * time.Minute,
 }
+var useS3 = false
 
 func main() {
+	// populate the test files
 	populateDLFiles()
+	//handle s3
+	useS3 = configureS3()
 	// Create upload directory if it doesn't exist
 	if _, err := os.Stat(uploadPath); os.IsNotExist(err) {
 		os.MkdirAll(uploadPath, os.ModePerm)
@@ -76,6 +81,37 @@ func main() {
 
 	fmt.Println("Server listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func configureS3() bool {
+	s3configured := true
+	s3region, exists := os.LookupEnv("S3REGION")
+	if exists {
+		s3Config.Region = s3region
+	} else {
+		s3configured = false
+	}
+	s3bucket, exists := os.LookupEnv(("S3BUCKET"))
+	if exists {
+		s3Config.BucketName = s3bucket
+	} else {
+		s3configured = false
+	}
+	//	AccessKey:  "your-access-key",
+	s3AccessKey, exists := os.LookupEnv(("S3KEYID"))
+	if exists {
+		s3Config.AccessKey = s3AccessKey
+	} else {
+		s3configured = false
+	}
+	//SecretKey:  "your-secret-key",
+	s3secret, exists := os.LookupEnv(("S3SECRET"))
+	if exists {
+		s3Config.SecretKey = s3secret
+	} else {
+		s3configured = false
+	}
+	return s3configured
 }
 
 func populateDLFiles() {
@@ -97,6 +133,7 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		Dlfs:         dlfs,
 		SlackWebhook: "",
 		UseSlack:     false,
+		UseS3:        useS3,
 	}
 	// execute the template
 	err := tmpl.Execute(w, dt)
