@@ -1,6 +1,6 @@
 async function fileClick(filename) {
-    let dlurl = "http://localhost:8080/static/downloads/"+filename;
-    let posturl = "http://localhost:8080/upload";
+    let dlurl = "/static/downloads/"+filename;
+    let posturl = "/upload";
     let result = await downloadAndPostFile(dlurl, posturl);
     console.log("Result from server:", result)
 
