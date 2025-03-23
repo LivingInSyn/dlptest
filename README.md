@@ -12,3 +12,12 @@ Configure the following environmental variables to use the S3 Test
 * S3BUCKET
 * S3KEYID
 * S3SECRET
+
+
+# TODOs
+- cleanup the UI
+- add CI
+- add more logging
+- add docs for minimal s3 setup
+- add verification for s3 upload
+- add auto-delete for s3 upload
