@@ -136,6 +136,7 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 		UseS3:        useS3,
 	}
 	// execute the template
+	w.Header().Set("Access-Control-Allow-Origin", "http://livinginsyn-dlptest.s3.us-west-2.amazonaws.com/")
 	err := tmpl.Execute(w, dt)
 	if err != nil {
 		log.Print(err.Error())
@@ -267,6 +268,7 @@ func generateS3PreSignedURL(w http.ResponseWriter, r *http.Request) {
 
 	// Convert response to JSON
 	w.Header().Set("Content-Type", "application/json")
+	log.Printf("Build and returned a S3 URL for %s\n", fileName)
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		http.Error(w, "Unable to encode response", http.StatusInternalServerError)
