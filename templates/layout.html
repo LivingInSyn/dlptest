@@ -1,102 +1,357 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>DLP Test</title>
+	<title>DLP Policy Testing Suite</title>
+	
+	<!-- Google Fonts: Inter -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+	<!-- Bootstrap 5 CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	
+	<!-- Custom Stylesheet -->
 	<link rel="stylesheet" href="/static/stylesheets/main.css">
 </head>
 <body>
-	<div class="container-fluid">
-	<div class="row">
-		<h3>HTTP POST files</h3>
-	</div>
-	{{range .Dlfs}}
-		<div class="row justify-content-start">
-			<div class="col-md-2">
-				<button type="button btn-primary" id="{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="fileClick(this.dataset.filename);" style="width: 100%;">{{.Name}}</button>
-			</div>
-			<span class="col-md-2" id="{{printf "%s-status" .Name}}">
-				Not Run
+	<!-- Glow Background Orbs -->
+	<div class="bg-glow"></div>
+	<div class="bg-glow-2"></div>
+
+	<!-- Premium Navbar -->
+	<nav class="navbar navbar-dark navbar-custom mb-5">
+		<div class="container">
+			<span class="navbar-brand mb-0 h1 d-flex align-items-center">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-shield-lock-fill me-2 text-primary" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 2.517 2.453c.386.273.744.482 1.048.625.28.132.581.24.829.24s.548-.108.829-.24a7 7 0 0 0 1.048-.625 11.8 11.8 0 0 0 2.517-2.453c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 62 62 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99A1.5 1.5 0 0 1 8 5"/>
+				</svg>
+				DLP Policy Testing Suite
 			</span>
-		</div>
-	{{end}}
-	<!-- Slack section -->
-	{{ if .UseS3}}
-	<div class="row">
-		<h3>S3 Upload</h3>
-	</div>
-	{{range .Dlfs}}
-		<div class="row justify-content-start">
-			<div class="col-md-2">
-				<button type="button btn-primary" id="s3-{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="s3fileClick(this.dataset.filename);" style="width: 100%;">{{.Name}}</button>
+			<div class="d-flex gap-2">
+				<span class="badge rounded-pill bg-dark border border-secondary text-slate-300 px-3 py-2 d-flex align-items-center">
+					S3 Integration: 
+					{{ if .UseS3 }}
+					<span class="text-success fw-bold ms-1">● Active</span>
+					{{ else }}
+					<span class="text-muted ms-1">○ Inactive</span>
+					{{ end }}
+				</span>
+				<span class="badge rounded-pill bg-dark border border-secondary text-slate-300 px-3 py-2 d-flex align-items-center">
+					Slack: 
+					{{ if .UseSlack }}
+					<span class="text-danger fw-bold ms-1">● Active</span>
+					{{ else }}
+					<span class="text-muted ms-1">○ Inactive</span>
+					{{ end }}
+				</span>
 			</div>
-			<span class="col-md-2" id="{{printf "%s-status-s3" .Name}}">
-				Not Run
-			</span>
 		</div>
-	{{end}}
-	</div>
-	{{ end }}
-	<!-- custom upload -->
-	<div class="row">
-		<h3>Custom Upload</h3>
-	</div>
-	<div class="row">
-		<div class="col-md-6">
-			<form method="post" action="/upload" enctype="multipart/form-data">
-				<div class="form-group">
-					<label for="formFile" class="form-label">Upload a custom file</label>
-  					<input class="form-control" type="file" id="formFile" name="file">
+	</nav>
+
+	<div class="container mb-5">
+		<!-- Hero Section -->
+		<div class="row mb-5">
+			<div class="col-lg-8 mx-auto text-center">
+				<h1 class="display-6 fw-bold mb-3 text-white">Validate Your Data Protection Policies</h1>
+				<p class="lead text-muted">Simulate secure and insecure file transfers to verify Data Loss Prevention (DLP) configuration, gateway rules, and policy enforcement across multiple protocols.</p>
+			</div>
+		</div>
+
+		<div class="row g-4">
+			<!-- Main Testing Area (Left Side) -->
+			<div class="col-lg-8">
+				
+				<!-- Outbound HTTP POST Tests -->
+				<div class="card shadow-sm border-0 mb-4 bg-slate-800 text-light">
+					<div class="card-header bg-slate-900 border-bottom border-slate-700 py-3">
+						<h5 class="card-title mb-0 d-flex align-items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cloud-arrow-up-fill me-2 text-primary" viewBox="0 0 16 16">
+								<path d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2m2.354 5.146a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L6.354 7.854a.5.5 0 1 1-.708-.708l1.5-1.5a.5.5 0 0 1 .708 0z"/>
+							</svg>
+							Outbound HTTP POST Upload Tests
+						</h5>
+					</div>
+					<div class="card-body p-0">
+						<div class="list-group list-group-flush bg-transparent">
+							{{range .Dlfs}}
+							<div class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 bg-transparent border-slate-700 file-item" data-filename="{{.Name}}">
+								<div class="d-flex align-items-center">
+									<div class="file-icon-container p-2 rounded-3 me-3 d-flex align-items-center justify-content-center">
+										<!-- Icon will be injected by JS -->
+									</div>
+									<div>
+										<div class="fw-semibold text-white filename-text">{{.Name}}</div>
+										<small class="text-muted d-block hash-text">SHA256: <span class="font-monospace text-slate-400">{{.Hash}}</span></small>
+									</div>
+								</div>
+								<div class="d-flex align-items-center gap-3">
+									<span id="{{printf "%s-status" .Name}}" class="status-badge badge rounded-pill">
+										Not Run
+									</span>
+									<button class="btn btn-primary btn-sm px-3 rounded-pill fw-semibold shadow-sm action-btn" id="{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="fileClick(this.dataset.filename);">
+										Test Upload
+									</button>
+								</div>
+							</div>
+							{{end}}
+						</div>
+					</div>
 				</div>
-				<button type="submit" class="btn btn-primary submitbutton">
-					Submit
-				</button>
-			</form>
-		</div>
-	</div>
-	<!-- Raw downloads -->
-	<div class="row">
-		<h3>Downloads</h3>
-	</div>
-	{{range .Dlfs}}
-	<div class="row justify-content-start">
-		<div class="col-md-2">
-			<form method="get" action="/static/downloads/{{.Name}}">
-				<button type="button btn-primary" style="width: 100%;">{{.Name}}</button>
-			</form>
-		</div>
-	</div>
-	{{end}}
-	<!-- dead code, if we're honest -->
-	{{ if .UseSlack}}
-	<div class="row">
-		<h3>Slack Upload</h3>
-	</div>
-	{{range .Dlfs}}
-		<div class="row justify-content-start">
-			<div class="col-md-2">
-				<button type="button btn-primary" id="slack-{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="slackFileClick(this.dataset.filename, "{{$.SlackWebhook}}");" style="width: 100%;">{{.Name}}</button>
+
+				<!-- AWS S3 Tests -->
+				{{ if .UseS3}}
+				<div class="card shadow-sm border-0 mb-4 bg-slate-800 text-light">
+					<div class="card-header bg-slate-900 border-bottom border-slate-700 py-3">
+						<h5 class="card-title mb-0 d-flex align-items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-box-fill me-2 text-warning" viewBox="0 0 16 16">
+								<path fill-rule="evenodd" d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.431.114a.75.75 0 0 1 .538 0zM1.04 3.277 7.5 5.862V13.5l-5.44-2.176V4.186zM14.96 4.186v7.138L9.5 13.5V5.862z"/>
+							</svg>
+							Outbound AWS S3 Bucket Upload Tests
+						</h5>
+					</div>
+					<div class="card-body p-0">
+						<div class="list-group list-group-flush bg-transparent">
+							{{range .Dlfs}}
+							<div class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 bg-transparent border-slate-700 file-item" data-filename="{{.Name}}">
+								<div class="d-flex align-items-center">
+									<div class="file-icon-container p-2 rounded-3 me-3 d-flex align-items-center justify-content-center">
+										<!-- Icon will be injected by JS -->
+									</div>
+									<div>
+										<div class="fw-semibold text-white filename-text">{{.Name}}</div>
+										<small class="text-muted d-block hash-text">Target: S3 Bucket API</small>
+									</div>
+								</div>
+								<div class="d-flex align-items-center gap-3">
+									<span id="{{printf "%s-status-s3" .Name}}" class="status-badge badge rounded-pill">
+										Not Run
+									</span>
+									<button class="btn btn-warning text-dark btn-sm px-3 rounded-pill fw-semibold shadow-sm action-btn" id="s3-{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="s3fileClick(this.dataset.filename);">
+										Test S3 Upload
+									</button>
+								</div>
+							</div>
+							{{end}}
+						</div>
+					</div>
+				</div>
+				{{ end }}
+
+				<!-- Slack Tests -->
+				{{ if .UseSlack}}
+				<div class="card shadow-sm border-0 mb-4 bg-slate-800 text-light">
+					<div class="card-header bg-slate-900 border-bottom border-slate-700 py-3">
+						<h5 class="card-title mb-0 d-flex align-items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-slack me-2 text-danger" viewBox="0 0 16 16">
+								<path d="M3.362 10.11a1.967 1.967 0 0 1-1.967-1.967 1.967 1.967 0 0 1 1.967-1.968h1.968v1.968a1.967 1.967 0 0 1-1.968 1.967m0-5.741A1.967 1.967 0 0 1 1.395 2.4 1.967 1.967 0 0 1 3.362.433h1.968v4.331H3.362v-.395zm5.741 0V.433H11.07a1.967 1.967 0 0 1 1.967 1.967 1.967 1.967 0 0 1-1.967 1.968zm0 5.741a1.967 1.967 0 0 1 1.967-1.967 1.967 1.967 0 0 1 1.967 1.968v1.968h-1.967a1.967 1.967 0 0 1-1.967-1.968m-5.741 5.741A1.967 1.967 0 0 1 1.395 13.6a1.967 1.967 0 0 1 1.967-1.967h1.968v1.967a1.967 1.967 0 0 1-1.968 1.967m0-5.741V5.741h1.968v5.741zm5.741 0V5.741h1.967v5.741zm0 5.741a1.967 1.967 0 0 1-1.967-1.967 1.967 1.967 0 0 1-1.968 1.967h-1.967v-1.967zm-5.741 0h1.968v1.967H3.362a1.967 1.967 0 0 1-1.968-1.967"/>
+							</svg>
+							Slack Integration Upload Tests
+						</h5>
+					</div>
+					<div class="card-body p-0">
+						<div class="list-group list-group-flush bg-transparent">
+							{{range .Dlfs}}
+							<div class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 bg-transparent border-slate-700 file-item" data-filename="{{.Name}}">
+								<div class="d-flex align-items-center">
+									<div class="file-icon-container p-2 rounded-3 me-3 d-flex align-items-center justify-content-center">
+										<!-- Icon will be injected by JS -->
+									</div>
+									<div>
+										<div class="fw-semibold text-white filename-text">{{.Name}}</div>
+										<small class="text-muted d-block hash-text">Target: Slack Webhook</small>
+									</div>
+								</div>
+								<div class="d-flex align-items-center gap-3">
+									<span id="slack-status-{{.Name}}" class="status-badge badge rounded-pill">
+										Not Run
+									</span>
+									<button class="btn btn-danger btn-sm px-3 rounded-pill fw-semibold shadow-sm action-btn" id="slack-{{.Name}}" data-filename="{{.Name}}" value="{{.Name}}" onclick="slackFileClick(this.dataset.filename, '{{$.SlackWebhook}}');">
+										Test Slack Upload
+									</button>
+								</div>
+							</div>
+							{{end}}
+						</div>
+					</div>
+				</div>
+				{{ end }}
+
 			</div>
-			<span class="col-md-2" id="{{printf "%s-status" .Name}}">
-				Not Run
-			</span>
+
+			<!-- Utilities & Inbound (Right Side) -->
+			<div class="col-lg-4">
+				
+				<!-- Custom Payload Upload -->
+				<div class="card shadow-sm border-0 mb-4 bg-slate-800 text-light">
+					<div class="card-header bg-slate-900 border-bottom border-slate-700 py-3">
+						<h5 class="card-title mb-0 d-flex align-items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-plus-fill me-2 text-info" viewBox="0 0 16 16">
+								<path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M8.5 7v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 1 0"/>
+							</svg>
+							Upload Custom Payload
+						</h5>
+					</div>
+					<div class="card-body p-4">
+						<p class="text-muted small">Test custom files (e.g. customized test patterns or files with specific classifications) against your outbound DLP filters.</p>
+						<form method="post" action="/upload" enctype="multipart/form-data">
+							<div class="mb-3">
+								<label for="formFile" class="form-label text-slate-300 fw-semibold small">Select Target File</label>
+								<input class="form-control bg-slate-900 border-slate-700 text-white" type="file" id="formFile" name="file" required>
+							</div>
+							<button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-pill shadow-sm mt-2">
+								Submit Payload
+							</button>
+						</form>
+					</div>
+				</div>
+
+				<!-- Direct Downloads (Inbound Test) -->
+				<div class="card shadow-sm border-0 mb-4 bg-slate-800 text-light">
+					<div class="card-header bg-slate-900 border-bottom border-slate-700 py-3">
+						<h5 class="card-title mb-0 d-flex align-items-center">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cloud-arrow-down-fill me-2 text-success" viewBox="0 0 16 16">
+								<path d="M8 2a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 6.095 0 7.555 0 9.318 0 11.366 1.708 13 3.781 13h8.906C14.502 13 16 11.57 16 9.773c0-1.636-1.242-2.969-2.834-3.194C12.923 3.999 10.69 2 8 2m2.354 6.854-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 9.293V5.5a.5.5 0 0 1 1 0v3.793l1.146-1.147a.5.5 0 0 1 .708.708z"/>
+							</svg>
+							Inbound Direct Downloads
+						</h5>
+					</div>
+					<div class="card-body p-0">
+						<div class="list-group list-group-flush bg-transparent">
+							{{range .Dlfs}}
+							<div class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 bg-transparent border-slate-700 file-item" data-filename="{{.Name}}">
+								<div class="d-flex align-items-center">
+									<div class="file-icon-container p-2 rounded-3 me-3 d-flex align-items-center justify-content-center">
+										<!-- Icon will be injected by JS -->
+									</div>
+									<div>
+										<div class="fw-semibold text-white filename-text">{{.Name}}</div>
+									</div>
+								</div>
+								<a href="/static/downloads/{{.Name}}" class="btn btn-outline-success btn-sm px-3 rounded-pill fw-semibold" download>
+									Download
+								</a>
+							</div>
+							{{end}}
+						</div>
+					</div>
+				</div>
+
+			</div>
 		</div>
-	{{end}}
-	</div>
-	{{end}}
-	<!-- end of div for container -->
 	</div>
 
+	<!-- Footer -->
+	<footer class="text-center text-slate-500 small">
+		<div class="container">
+			<p class="mb-1">DLP Policy Testing Tool &copy; 2026</p>
+			<p class="mb-0">Designed for internal security architecture validation and compliance testing.</p>
+		</div>
+	</footer>
 
+	<!-- Bootstrap 5 Bundle JS -->
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-	<script src ="/static/scripts/common.js"></script>
-	<script src ="/static/scripts/http_test.js"></script>
-	<script src ="/static/scripts/slack_test.js"></script>
-	<script src ="/static/scripts/s3_test.js"></script>
-<footer>
-</footer>
+	
+	<!-- Original Test Scripts -->
+	<script src="/static/scripts/common.js"></script>
+	<script src="/static/scripts/http_test.js"></script>
+	<script src="/static/scripts/slack_test.js"></script>
+	<script src="/static/scripts/s3_test.js"></script>
+
+	<!-- Dynamic Styling Script -->
+	<script>
+		document.addEventListener("DOMContentLoaded", function() {
+			// 1. Initial badge styling
+			const badges = document.querySelectorAll(".status-badge");
+			badges.forEach(badge => {
+				updateBadgeStyle(badge);
+			});
+
+			// 2. Observe changes in the badges' text to update their classes dynamically
+			const observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) {
+					if (mutation.type === "characterData" || mutation.type === "childList") {
+						updateBadgeStyle(mutation.target);
+					}
+				});
+			});
+
+			badges.forEach(badge => {
+				observer.observe(badge, { characterData: true, childList: true, subtree: true });
+			});
+
+			function updateBadgeStyle(element) {
+				let target = element;
+				if (element.nodeType === Node.TEXT_NODE) {
+					target = element.parentElement;
+				}
+				if (!target) return;
+
+				const text = target.textContent.trim().toLowerCase();
+				
+				// Reset classes
+				target.className = "status-badge badge rounded-pill";
+				
+				if (text === "not run") {
+					target.classList.add("bg-secondary-subtle", "text-secondary", "border", "border-secondary-subtle");
+				} else if (text.includes("successful") || text.includes("success")) {
+					target.classList.add("bg-success-subtle", "text-success", "border", "border-success-subtle");
+				} else if (text.includes("failed") || text.includes("not successful") || text.includes("error")) {
+					target.classList.add("bg-danger-subtle", "text-danger", "border", "border-danger-subtle");
+				} else if (text.includes("progress") || text.includes("running") || text.includes("pending")) {
+					target.classList.add("bg-warning-subtle", "text-warning", "border", "border-warning-subtle", "pulse-animation");
+				} else {
+					target.classList.add("bg-info-subtle", "text-info", "border", "border-info-subtle");
+				}
+			}
+
+			// 3. File type icon injector
+			const fileItems = document.querySelectorAll(".file-item");
+			fileItems.forEach(item => {
+				const filename = item.dataset.filename;
+				if (!filename) return;
+				
+				const iconContainer = item.querySelector(".file-icon-container");
+				if (!iconContainer) return;
+
+				const ext = filename.split('.').pop().toLowerCase();
+				let iconHtml = '';
+				let badgeClass = '';
+
+				if (ext === 'docx' || ext === 'doc') {
+					badgeClass = 'badge-word';
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-word-fill" viewBox="0 0 16 16">
+						<path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M5.485 6.879l1.037 2.436h.053l1.025-2.436h1.273l-1.934 3.876H5.78L3.847 6.879z"/>
+					</svg>`;
+				} else if (ext === 'xlsx' || ext === 'xls') {
+					badgeClass = 'badge-excel';
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-excel-fill" viewBox="0 0 16 16">
+						<path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M5.884 6.68 8 9.5l2.116-2.82a.5.5 0 1 1 .8.6L8.747 10.3l2.169 2.893a.5.5 0 1 1-.8.6L8 10.966l-2.116 2.827a.5.5 0 1 1-.8-.6L7.253 10.3 5.084 7.4a.5.5 0 1 1 .8-.6"/>
+					</svg>`;
+				} else if (ext === 'pdf') {
+					badgeClass = 'badge-pdf';
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-pdf-fill" viewBox="0 0 16 16">
+						<path d="M5.523 12.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.33-.52.495-.7.495q-.225 0-.353-.172c-.08-.104-.12-.258-.12-.45 0-.213.148-.443.444-.69q.114-.093.303-.183m.652-3.744c.12-.254.223-.51.31-.76a22 22 0 0 0 .427-1.8 1.15 1.15 0 0 1 .193-.534c.12-.172.3-.27.531-.27q.675 0 .675 1.185c0 .22-.034.455-.102.7-.067.245-.218.6-.45.1.06-.1.1-.125.1-.2q-.177-.04-.543-.1-.53-.08-.857-.08h-.022c-.296 0-.67.107-.96.223h-.01c-.13-.59-.26-1.24-.39-1.848q-.14-.627-.3-.882c-.112-.173-.285-.294-.52-.363q-.106-.032-.234-.032a1 1 0 0 0-.673.244c-.21.18-.313.43-.313.75 0 .624.49 1.353 1.47 2.184l.53.411c.214.605.457 1.25.7 1.9"/>
+						<path d="M9.293 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.707A1 1 0 0 0 13.707 4L10 .293A1 1 0 0 0 9.293 0M9.5 3.5v-2l3 3h-2a1 1 0 0 1-1-1M4.578 10.2q-.114.06-.21.135-.357.27-.565.552a1 1 0 0 0-.15.48c0 .4.21.68.625.68q.435 0 .863-.5c.245-.285.433-.61.562-.975zm.965-1.12q-.246-.16-.49-.31c-.156-.09-.32-.178-.49-.26-.14-.075-.24-.13-.3-.16-.54-.28-.9-.6-.9-1.1 0-.3.1-.5.3-.7a1 1 0 0 1 .7-.3q.18 0 .32.1c.14.07.28.2.4.4.15.22.3.57.45 1.03l.11.41a25 25 0 0 0 .41 1.7zm1.86.3c.045-.25.135-.55.27-.9.11-.25.22-.51.33-.76q.43.04.83.1c.25.04.45.07.6.1a3 3 0 0 1-.3.72q-.255.45-.66.78c-.23.19-.48.33-.73.43q-.16.06-.34.06c-.18 0-.34-.06-.5-.16a1.5 1.5 0 0 1-.5-.67z"/>
+					</svg>`;
+				} else if (ext === 'csv') {
+					badgeClass = 'badge-csv';
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-filetype-csv" viewBox="0 0 16 16">
+						<path fill-rule="evenodd" d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM3.517 14.841a1.13 1.13 0 0 0 .401.823q.295.238.742.238.445 0 .742-.238.296-.239.296-.827 0-.579-.296-.808q-.297-.234-.742-.234-.447 0-.742.234a1.1 1.1 0 0 0-.401.812M1.5 12h-.317v4H1v-1.22h1.61v-.812H1v-.11h1.5v-.813zm4.517 3.511q-.31-.22-.31-.818t.31-.815q.308-.222.842-.222.528 0 .84.225.312.225.312.809t-.31.813q-.312.228-.842.228-.535 0-.842-.22M8 12h-.317v4H7.5v-1.22h1.61v-.812H7.5v-.11h1.5V12zM0 12.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v.417a.5.5 0 0 1-.5.5H.5v.834h1.5a.5.5 0 0 1 .5.5v.417a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-.417a.5.5 0 0 1 .5-.5H2v-.834H.5a.5.5 0 0 1-.5-.5z"/>
+					</svg>`;
+				} else {
+					badgeClass = 'badge-generic';
+					iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-file-earmark-fill" viewBox="0 0 16 16">
+						<path d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2m5.5 1.5v2a1 1 0 0 0 1 1h2z"/>
+					</svg>`;
+				}
+
+				iconContainer.innerHTML = iconHtml;
+				iconContainer.classList.add(badgeClass);
+			});
+		});
+	</script>
 </body>
 </html>
