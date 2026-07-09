@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"text/template"
 	"time"
 
@@ -132,6 +133,11 @@ func serveTemplate(w http.ResponseWriter, r *http.Request) {
 	for _, v := range DLFiles {
 		dlfs = append(dlfs, v)
 	}
+	// Sort the files alphabetically by Name for stable rendering
+	sort.Slice(dlfs, func(i, j int) bool {
+		return dlfs[i].Name < dlfs[j].Name
+	})
+
 	dt := DownloadTemplate{
 		Dlfs:         dlfs,
 		SlackWebhook: "",

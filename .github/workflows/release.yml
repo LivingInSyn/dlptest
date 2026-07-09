@@ -1,0 +1,86 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Tag is on Main Branch
+        run: |
+          git fetch origin main
+          if ! git branch -r --contains ${{ github.ref_name }} | grep -q "origin/main"; then
+            echo "Error: Tag ${{ github.ref_name }} is not on the main branch."
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.0'
+
+      - name: Build Executables
+        run: |
+          mkdir -p dist
+          # Build Linux Binary
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/dlptest-linux-amd64 .
+          
+          # Build macOS Apple Silicon Binary
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/dlptest-darwin-arm64 .
+          
+          # Build Windows Binary
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o dist/dlptest-windows-amd64.exe .
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Downcase Repository Owner for Docker Tag
+        id: repo-owner
+        run: |
+          echo "owner=${OWNER,,}" >> "${GITHUB_OUTPUT}"
+        env:
+          OWNER: '${{ github.repository_owner }}'
+
+      - name: Build and Push Docker Image to GHCR
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo-owner.outputs.owner }}/dlptest:latest
+            ghcr.io/${{ steps.repo-owner.outputs.owner }}/dlptest:${{ github.ref_name }}
+
+      - name: Export Docker Image Tarball
+        run: |
+          docker build -t dlptest:${{ github.ref_name }} .
+          docker save -o dist/dlptest-docker-image.tar dlptest:${{ github.ref_name }}
+          gzip dist/dlptest-docker-image.tar
+
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/dlptest-linux-amd64
+            dist/dlptest-darwin-arm64
+            dist/dlptest-windows-amd64.exe
+            dist/dlptest-docker-image.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
